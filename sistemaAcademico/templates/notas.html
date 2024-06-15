@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Lista de Notas por Alumno y Curso
+        <button class="btn btn-primary float-right" data-toggle="modal" data-target="#agregarNotaModal">
+            Agregar Nota
+        </button>
+    </div>
+    <div class="card-body">
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Alumno</th>
+                    <th>Curso</th>
+                    <th>Nota</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nota in notas %}
+                <tr>
+                    <td>{{ nota.idNotasAlumnoPorCurso }}</td>
+                    <td>{{ nota.alumno }}</td>
+                    <td>{{ nota.curso }}</td>
+                    <td>{{ nota.nota }}</td>
+                    <td>
+                        
+                        <button class="btn btn-sm btn-danger"
+                            onclick="eliminarNota('{{ nota.idNotasAlumnoPorCurso }}')">Eliminar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="agregarNotaModal" tabindex="-1" role="dialog" aria-labelledby="agregarNotaModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agregarNotaModalLabel">Agregar Nota</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="agregarNotaForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="idNotasAlumnoPorCurso">ID Nota:</label>
+                        <input type="text" class="form-control" id="idNotasAlumnoPorCurso" name="idNotasAlumnoPorCurso">
+                    </div>
+                    <div class="form-group">
+                        <label for="alumno">Alumno:</label>
+                        <select class="form-control" id="alumno" name="alumno">
+                            {% for alumno in alumnos %}
+                            <option value="{{ alumno.idAlumno }}">{{ alumno.nombres }} {{ alumno.apellidos }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="curso">Curso:</label>
+                        <select class="form-control" id="curso" name="curso">
+                            {% for curso in cursos %}
+                            <option value="{{ curso.idCurso }}">{{ curso.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="nota">Nota:</label>
+                        <input type="text" class="form-control" id="nota" name="nota">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function eliminarNota(idNotasAlumnoPorCurso) {
+        if (confirm('¿Estás seguro de eliminar esta nota?')) {
+            $.ajax({
+                url: '/sistema/eliminar-nota/' + idNotasAlumnoPorCurso + '/',
+                type: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error al intentar eliminar la nota.');
+                    }
+                },
+                error: function () {
+                    alert('Error al intentar eliminar la nota. Inténtalo nuevamente.');
+                }
+            });
+        }
+    }
+
+    $('#agregarNotaForm').submit(function (event) {
+        event.preventDefault();
+        var form = $(this);
+        $.ajax({
+            url: '/sistema/agregar-nota/',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error al intentar agregar la nota.');
+                }
+            },
+            error: function () {
+                alert('Error al intentar agregar la nota. Inténtalo nuevamente.');
+            }
+        });
+    });
+</script>
+{% endblock %}

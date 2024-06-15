@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Lista de Cursos
+        <button class="btn btn-primary float-right" data-toggle="modal" data-target="#agregarCursoModal">
+            Agregar Curso
+        </button>
+    </div>
+    <div class="card-body">
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Créditos</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for curso in cursos %}
+                <tr>
+                    <td>{{ curso.idCurso }}</td>
+                    <td>{{ curso.nombre }}</td>
+                    <td>{{ curso.creditos }}</td>
+                    <td>
+                        
+                        <button class="btn btn-sm btn-danger"
+                            onclick="eliminarCurso('{{ curso.idCurso }}')">Eliminar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="agregarCursoModal" tabindex="-1" role="dialog" aria-labelledby="agregarCursoModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agregarCursoModalLabel">Agregar Curso</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="agregarCursoForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="idCurso">ID Curso:</label>
+                        <input type="text" class="form-control" id="idCurso" name="idCurso">
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre">
+                    </div>
+                    <div class="form-group">
+                        <label for="creditos">Créditos:</label>
+                        <input type="text" class="form-control" id="creditos" name="creditos">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function eliminarCurso(idCurso) {
+        if (confirm('¿Estás seguro de eliminar este curso?')) {
+            $.ajax({
+                url: '/sistema/eliminar-curso/' + idCurso + '/',
+                type: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error al intentar eliminar el curso.');
+                    }
+                },
+                error: function () {
+                    alert('Error al intentar eliminar el curso. Inténtalo nuevamente.');
+                }
+            });
+        }
+    }
+
+    
+    $('#agregarCursoForm').submit(function (event) {
+        event.preventDefault();
+        var form = $(this);
+        $.ajax({
+            url: '/sistema/agregar-curso/',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error al intentar agregar el curso.');
+                }
+            },
+            error: function () {
+                alert('Error al intentar agregar el curso. Inténtalo nuevamente.');
+            }
+        });
+    });
+</script>
+{% endblock %}

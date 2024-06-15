@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Lista de Alumnos
+        <button class="btn btn-primary float-right" data-toggle="modal" data-target="#agregarModal">
+            Agregar Alumno
+        </button>
+    </div>
+    <div class="card-body">
+        <table class="table table-responsive">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
+                    <th>CUI</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alumno in alumnos %}
+                <tr>
+                    <td>{{ alumno.idAlumno }}</td>
+                    <td>{{ alumno.nombres }}</td>
+                    <td>{{ alumno.apellidos }}</td>
+                    <td>{{ alumno.cui }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarAlumno('{{ alumno.idAlumno }}')">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="agregarModal" tabindex="-1" role="dialog" aria-labelledby="agregarModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="agregarModalLabel">Agregar Alumno</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="agregarAlumnoForm">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="idAlumno">ID Alumno:</label>
+                        <input type="text" class="form-control" id="idAlumno" name="idAlumno">
+                    </div>
+                    <div class="form-group">
+                        <label for="nombres">Nombres:</label>
+                        <input type="text" class="form-control" id="nombres" name="nombres">
+                    </div>
+                    <div class="form-group">
+                        <label for="apellidos">Apellidos:</label>
+                        <input type="text" class="form-control" id="apellidos" name="apellidos">
+                    </div>
+                    <div class="form-group">
+                        <label for="cui">CUI:</label>
+                        <input type="text" class="form-control" id="cui" name="cui">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script>
+    function eliminarAlumno(idAlumno) {
+        if (confirm('¿Estás seguro de eliminar este alumno?')) {
+            $.ajax({
+                url: '/sistema/eliminar-alumno/' + idAlumno + '/',
+                type: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                dataType: 'json',
+                success: function (response) {
+                    if (response.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error al intentar eliminar el alumno.');
+                    }
+                },
+                error: function () {
+                    alert('Error al intentar eliminar el alumno. Inténtalo nuevamente.');
+                }
+            });
+        }
+    }
+
+    $('#agregarAlumnoForm').submit(function (event) {
+        event.preventDefault();
+        var form = $(this);
+        $.ajax({
+            url: '/sistema/agregar-alumno/',
+            type: 'POST',
+            data: form.serialize(),
+            dataType: 'json',
+            success: function (response) {
+                if (response.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error al intentar agregar el alumno.');
+                }
+            },
+            error: function () {
+                alert('Error al intentar agregar el alumno. Inténtalo nuevamente.');
+            }
+        });
+    });
+</script>
+{% endblock %}
